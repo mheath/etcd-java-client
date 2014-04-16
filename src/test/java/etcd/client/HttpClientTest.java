@@ -24,11 +24,13 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
 import org.testng.annotations.Test;
 
+import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertTrue;
 
 /**
  * @author Mike Heath <elcapo@gmail.com>
@@ -37,7 +39,7 @@ public class HttpClientTest {
 
 	@Test
 	public void httpClient() throws Exception {
-		final HttpClient httpClient = new HttpClient(new NioEventLoopGroup(), Runnable::run);
+		final HttpClient httpClient = new HttpClient(new NioEventLoopGroup(), Runnable::run, Arrays.asList(URI.create("http://localhost:2001")));
 		final CountDownLatch latch = new CountDownLatch(1);
 		httpClient.send(new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/v2/keys/"), (response) -> {
 			final DefaultFullHttpResponse httpResponse = response.getHttpResponse();

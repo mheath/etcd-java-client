@@ -33,6 +33,8 @@ import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -51,12 +53,14 @@ class HttpClient {
 	private final Bootstrap bootstrap;
 	private final Executor executor;
 
+	private final List<URI> hosts;
 //	private final List<Channel> channelPool = new ArrayList<>();
 //
 //	private final Object lock = new Object();
 
-	public HttpClient(EventLoopGroup eventLoopGroup, Executor executor) {
+	public HttpClient(EventLoopGroup eventLoopGroup, Executor executor, List<URI> hosts) {
 		this.executor = executor;
+		this.hosts = hosts;
 		bootstrap = new Bootstrap()
 				.group(eventLoopGroup)
 				.channel(NioSocketChannel.class)
@@ -75,7 +79,11 @@ class HttpClient {
 	}
 
 	public void send(HttpRequest request, Consumer<Response> completionHandler) {
-		final ChannelFuture connectFuture = bootstrap.connect("localhost", 2001);
+		// TODO Load balance across all the etcd hosts
+		// TODO Add support for TLS
+		// TODO Add suport for TLS client authentication
+		final URI server = hosts.get(0);
+		final ChannelFuture connectFuture = bootstrap.connect(server.getHost(), server.getPort());
 		connectFuture.channel().attr(ATTRIBUTE_KEY).set(completionHandler);
 		connectFuture.addListener((future) -> {
 			if (future.isSuccess()) {
