@@ -36,6 +36,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,7 +47,7 @@ import java.util.Optional;
  */
 public class DefaultEtcdClient implements EtcdClient {
 
-	private final ObjectMapper mapper = new ObjectMapper();
+	private static final ObjectMapper MAPPER = new ObjectMapper();
 
 	private final HttpClient client;
 	private final EventLoopGroup eventLoopGroup;
@@ -179,7 +180,7 @@ public class DefaultEtcdClient implements EtcdClient {
 
 	private void throwException(FullHttpResponse response) {
 		try {
-			final ErrorBody errorBody = mapper.readValue(new ByteBufInputStream(response.content()), ErrorBody.class);
+			final ErrorBody errorBody = MAPPER.readValue(new ByteBufInputStream(response.content()), ErrorBody.class);
 			final String message = errorBody.message == null ? "Error executing request" : errorBody.message;
 			throw new EtcdRequestException(message, errorBody.errorCode, errorBody.index, errorBody.cause);
 		} catch (IOException e) {
@@ -413,7 +414,7 @@ public class DefaultEtcdClient implements EtcdClient {
 			);
 
 			final ByteBufInputStream inputStream = new ByteBufInputStream(response.content());
-			final JsonResult json = mapper.readValue(inputStream, JsonResult.class);
+			final JsonResult json = MAPPER.readValue(inputStream, JsonResult.class);
 
 			return new Result() {
 				@Override
@@ -467,7 +468,7 @@ public class DefaultEtcdClient implements EtcdClient {
 			this.node = node;
 			this.previousNode = previousNode;
 		}
-	}
+		}
 
 	private static class JsonNode implements Node {
 
@@ -501,9 +502,17 @@ public class DefaultEtcdClient implements EtcdClient {
 		}
 
 		private Instant parseDate(String expiration) {
-			final int timeSep = expiration.lastIndexOf('-');
-			expiration = expiration.substring(0, timeSep) + 'Z' + expiration.substring(timeSep + 1);
-			return Instant.parse(expiration);
+			try {
+				return Instant.parse(expiration);
+			} catch (DateTimeParseException e) {
+				try {
+					final int timeSep = expiration.lastIndexOf('-');
+					expiration = expiration.substring(0, timeSep) + 'Z' + expiration.substring(timeSep + 1);
+					return Instant.parse(expiration);
+				} catch (DateTimeParseException e1) {
+					throw e;
+				}
+			}
 		}
 
 		@Override
