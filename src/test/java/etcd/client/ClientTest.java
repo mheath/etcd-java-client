@@ -76,6 +76,20 @@ public class ClientTest extends AbstractClientTest {
 	}
 
 	@Test
+	public void metaData() {
+		final Result result = client.get("/").send();
+		final EtcdMeta meta = result.getResponseMeta();
+		assertNotNull(meta);
+		assertTrue(meta.getEtcdIndex() > 0);
+		assertTrue(meta.getRaftIndex() > 0);
+		assertEquals(meta.getRaftTerm(), 0);
+
+		final String s = meta.toString();
+		assertTrue(s.contains(Long.toBinaryString(meta.getEtcdIndex())));
+		assertTrue(s.contains(Long.toBinaryString(meta.getRaftIndex())));
+	}
+
+	@Test
 	public void blockingDelete() {
 		final String key = "/blockingDelete";
 		client.set(key).value("some value").send();
