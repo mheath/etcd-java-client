@@ -17,6 +17,7 @@
 package etcd.client;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * @author Mike Heath <elcapo@gmail.com>
@@ -26,7 +27,7 @@ public interface Result {
 	/**
 	 * Returns the global information about the etcd cluster at the time the request was serviced.
 	 *
-	 * @return
+	 * @return the result meta-data.
 	 */
 	EtcdMeta getResponseMeta();
 
@@ -35,5 +36,16 @@ public interface Result {
 	Node getNode();
 
 	Optional<Node> getPreviousNode();
+
+	default Stream<Node> streamAllNodes() {
+		final Stream.Builder<Node> builder = Stream.<Node>builder();
+		addNode(builder, getNode());
+		return builder.build();
+	}
+
+	static void addNode(Stream.Builder<Node> builder, Node node) {
+		builder.add(node);
+		node.getNodes().forEach(child -> addNode(builder, child));
+	}
 
 }
