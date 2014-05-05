@@ -85,8 +85,8 @@ public class ClientTest extends AbstractClientTest {
 		assertEquals(meta.getRaftTerm(), 0);
 
 		final String s = meta.toString();
-		assertTrue(s.contains(Long.toBinaryString(meta.getEtcdIndex())));
-		assertTrue(s.contains(Long.toBinaryString(meta.getRaftIndex())));
+		assertTrue(s.contains(Long.toString(meta.getEtcdIndex())));
+		assertTrue(s.contains(Long.toString(meta.getRaftIndex())));
 	}
 
 	@Test
