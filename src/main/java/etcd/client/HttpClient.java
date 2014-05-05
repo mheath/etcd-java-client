@@ -107,6 +107,7 @@ class HttpClient {
 				throw new IllegalStateException("Received a response with nothing to handle it.");
 			}
 			invokeCompletionHandler(completionCallbackHandler, new Response((DefaultFullHttpResponse) msg, null));
+			ctx.close();
 		}
 
 		@Override
