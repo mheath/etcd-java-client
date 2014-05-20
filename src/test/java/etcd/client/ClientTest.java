@@ -39,7 +39,7 @@ public class ClientTest extends AbstractClientTest {
 
 	@BeforeClass
 	public void init() {
-		client = EtcdClientBuilder.create().addHost("localhost", PORT).build();
+		client = EtcdClientBuilder.create().addHost("localhost", PORT, true).build();
 	}
 
 	@Test

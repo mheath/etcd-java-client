@@ -26,7 +26,6 @@ import org.testng.annotations.Test;
 
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -39,7 +38,9 @@ public class HttpClientTest {
 
 	@Test
 	public void httpClient() throws Exception {
-		final HttpClient httpClient = new HttpClient(new NioEventLoopGroup(), Runnable::run, Arrays.asList(URI.create("http://localhost:2001")));
+		final ServerList serverList = new ServerList();
+		serverList.addServer(URI.create("http://localhost:2001"), true);
+		final HttpClient httpClient = new HttpClient(new NioEventLoopGroup(), Runnable::run, serverList, false);
 		final CountDownLatch latch = new CountDownLatch(1);
 		httpClient.send(new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/v2/keys/"), (response) -> {
 			final DefaultFullHttpResponse httpResponse = response.getHttpResponse();

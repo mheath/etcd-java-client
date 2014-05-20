@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.List;
+import java.util.Iterator;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -53,14 +53,16 @@ class HttpClient {
 	private final Bootstrap bootstrap;
 	private final Executor executor;
 
-	private final List<URI> hosts;
+	private final ServerList servers;
+	private final boolean autoReconnect;
 //	private final List<Channel> channelPool = new ArrayList<>();
 //
 //	private final Object lock = new Object();
 
-	public HttpClient(EventLoopGroup eventLoopGroup, Executor executor, List<URI> hosts) {
+	public HttpClient(EventLoopGroup eventLoopGroup, Executor executor, ServerList servers, boolean autoReconnect) {
 		this.executor = executor;
-		this.hosts = hosts;
+		this.servers = servers;
+		this.autoReconnect = autoReconnect;
 		bootstrap = new Bootstrap()
 				.group(eventLoopGroup)
 				.channel(NioSocketChannel.class)
@@ -81,16 +83,25 @@ class HttpClient {
 	public void send(HttpRequest request, Consumer<Response> completionHandler) {
 		// TODO Load balance across all the etcd hosts
 		// TODO Add support for TLS
-		// TODO Add suport for TLS client authentication
-		final URI server = hosts.get(0);
-		final ChannelFuture connectFuture = bootstrap.connect(server.getHost(), server.getPort());
+		// TODO Add support for TLS client authentication
+		send(servers.serverIterator(), request, completionHandler);
+	}
+
+	private void send(Iterator<ServerList.Server> serverIterator, HttpRequest request, Consumer<Response> completionHandler) {
+		final ServerList.Server server = serverIterator.next();
+		final URI address = server.getAddress();
+		final ChannelFuture connectFuture = bootstrap.connect(address.getHost(), address.getPort());
 		connectFuture.channel().attr(ATTRIBUTE_KEY).set(completionHandler);
 		connectFuture.addListener((future) -> {
 			if (future.isSuccess()) {
 				connectFuture.channel().writeAndFlush(request);
 			} else {
-				// TODO Add support for trying to connect to another node in the cluster
-				invokeCompletionHandler(completionHandler, new Response(null, new EtcdException(future.cause())));
+				server.connectionFailed();
+				if (autoReconnect && serverIterator.hasNext()) {
+					send(serverIterator, request, completionHandler);
+				} else {
+					invokeCompletionHandler(completionHandler, new Response(null, new EtcdException(future.cause())));
+				}
 			}
 		});
 	}

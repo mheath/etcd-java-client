@@ -37,7 +37,6 @@ import java.net.URLEncoder;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -59,7 +58,7 @@ public class DefaultEtcdClient implements EtcdClient {
 		} else {
 			this.eventLoopGroup = null;
 		}
-		client = new HttpClient(eventLoopGroup, builder.executor, new ArrayList<>(builder.hosts));
+		client = new HttpClient(eventLoopGroup, builder.executor, builder.servers, builder.retryOnConnectFailure);
 	}
 
 	@Override
