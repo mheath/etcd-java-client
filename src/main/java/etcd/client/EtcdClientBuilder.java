@@ -17,12 +17,8 @@
 package etcd.client;
 
 import io.netty.channel.EventLoopGroup;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Executor;
 
 /**
@@ -30,8 +26,8 @@ import java.util.concurrent.Executor;
  */
 public class EtcdClientBuilder {
 
-	final List<URI> hosts = new ArrayList<>();
-	boolean retryOnFailure = true;
+	final ServerList servers = new ServerList();
+	boolean retryOnConnectFailure = true;
 	int connectTimeout = 2000;
 	EventLoopGroup eventLoopGroup;
 	Executor executor = Runnable::run;
@@ -40,8 +36,21 @@ public class EtcdClientBuilder {
 		return new EtcdClientBuilder();
 	}
 
-	public EtcdClientBuilder addHost(String localhost, int port) {
-		hosts.add(URI.create(String.format("http://%s:%d/", localhost, port)));
+	public EtcdClientBuilder addHost(String localhost, int port, boolean primary) {
+		final URI uri = URI.create(String.format("http://%s:%d/", localhost, port));
+		servers.addServer(uri, primary);
+		return this;
+	}
+
+	/**
+	 * Indicates if the etcd client should attempt to connect to a different node in the etcd cluster if the
+	 * first connection attempt failes
+	 * @param retryOnConnectFailure {@code true} if the client should attempt to reconnect after a connection
+	 *                                          failure, {@code false} otherwise.
+	 * @return this build instance
+	 */
+	public EtcdClientBuilder retryOnConnectFailure(boolean retryOnConnectFailure) {
+		this.retryOnConnectFailure = retryOnConnectFailure;
 		return this;
 	}
 
