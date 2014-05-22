@@ -28,6 +28,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
@@ -181,9 +182,12 @@ public class DefaultEtcdClient implements EtcdClient {
 		try {
 			final ErrorBody errorBody = MAPPER.readValue(new ByteBufInputStream(response.content()), ErrorBody.class);
 			final String message = errorBody.message == null ? "Error executing request" : errorBody.message;
+			if (response.getStatus().code() == HttpResponseStatus.NOT_FOUND.code()) {
+				throw new KeyNotFoundException(message, errorBody.errorCode, errorBody.index, errorBody.cause);
+			}
 			throw new EtcdRequestException(message, errorBody.errorCode, errorBody.index, errorBody.cause);
 		} catch (IOException e) {
-			throw new Error(e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -435,6 +439,16 @@ public class DefaultEtcdClient implements EtcdClient {
 				public Optional<Node> getPreviousNode() {
 					return Optional.ofNullable(json.previousNode);
 				}
+
+				@Override
+				public String toString() {
+					return "Result {" +
+							"meta = " + getResponseMeta() +
+							", action = " + getAction() +
+							", node = " + getNode() +
+							", prevNode = " + getPreviousNode().orElse(null) +
+							"}";
+				}
 			};
 		} catch (IOException e) {
 			throw new EtcdException(e);
@@ -467,7 +481,7 @@ public class DefaultEtcdClient implements EtcdClient {
 			this.node = node;
 			this.previousNode = previousNode;
 		}
-		}
+	}
 
 	private static class JsonNode implements Node {
 
@@ -552,6 +566,20 @@ public class DefaultEtcdClient implements EtcdClient {
 		@Override
 		public List<? extends Node> getNodes() {
 			return nodes;
+		}
+
+		@Override
+		public String toString() {
+			return "JsonNode{" +
+					"createdIndex=" + createdIndex +
+					", modifiedIndex=" + modifiedIndex +
+					", key='" + key + '\'' +
+					", value='" + value + '\'' +
+					", expiration=" + expiration +
+					", timeToLive=" + timeToLive +
+					", directory=" + directory +
+					", nodes=" + nodes +
+					'}';
 		}
 	}
 
