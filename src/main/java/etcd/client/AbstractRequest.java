@@ -16,6 +16,7 @@
  */
 package etcd.client;
 
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 
@@ -51,7 +52,12 @@ public abstract class AbstractRequest<T> implements Request<T> {
 				throw new EtcdException(e);
 			}
 		}
-		return createResult(clientResponse[0].getHttpResponse());
+		final DefaultFullHttpResponse response = clientResponse[0].getHttpResponse();
+		try {
+			return createResult(response);
+		} finally {
+			response.release();
+		}
 	}
 
 	@Override
@@ -68,6 +74,8 @@ public abstract class AbstractRequest<T> implements Request<T> {
 					ee = new EtcdException(e);
 				}
 				consumer.accept(() -> { throw ee; });
+			} finally {
+				response.getHttpResponse().release();
 			}
 		});
 	}

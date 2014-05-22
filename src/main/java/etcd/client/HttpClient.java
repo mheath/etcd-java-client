@@ -81,7 +81,6 @@ class HttpClient {
 	}
 
 	public void send(HttpRequest request, Consumer<Response> completionHandler) {
-		// TODO Load balance across all the etcd hosts
 		// TODO Add support for TLS
 		// TODO Add support for TLS client authentication
 		send(servers.serverIterator(), request, completionHandler);
@@ -117,7 +116,9 @@ class HttpClient {
 			if (completionCallbackHandler == null) {
 				throw new IllegalStateException("Received a response with nothing to handle it.");
 			}
-			invokeCompletionHandler(completionCallbackHandler, new Response((DefaultFullHttpResponse) msg, null));
+			final DefaultFullHttpResponse response = (DefaultFullHttpResponse) msg;
+			response.retain();
+			invokeCompletionHandler(completionCallbackHandler, new Response(response, null));
 			ctx.close();
 		}
 
