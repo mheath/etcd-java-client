@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 class ServerList {
 
 	public static final long DEFAULT_FAILURE_BACKOFF_TIME = TimeUnit.SECONDS.toMillis(2);

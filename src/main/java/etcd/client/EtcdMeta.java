@@ -16,9 +16,6 @@
  */
 package etcd.client;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public class EtcdMeta {
 
 	private final long etcdIndex;

@@ -21,9 +21,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public interface Node {
 
 	long getCreatedIndex();

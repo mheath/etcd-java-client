@@ -21,8 +21,6 @@ import java.util.function.Supplier;
 
 /**
  * Represents a request to the etcd cluster.
- *
- * @author Mike Heath <elcapo@gmail.com>
  */
 public interface Request<T> {
 

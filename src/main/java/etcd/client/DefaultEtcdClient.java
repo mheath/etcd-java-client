@@ -42,9 +42,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public class DefaultEtcdClient implements EtcdClient {
 
 	private static final ObjectMapper MAPPER = new ObjectMapper();

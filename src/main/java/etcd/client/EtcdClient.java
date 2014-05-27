@@ -16,9 +16,6 @@
  */
 package etcd.client;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 // TODO Add method for retrieving a lock
 // TODO API for leader module -- can you 'watch' a leader? can you 'watch' a lock?
 // TODO Statistics methods

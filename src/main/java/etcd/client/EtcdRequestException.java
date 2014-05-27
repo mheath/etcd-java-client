@@ -19,9 +19,6 @@ package etcd.client;
 import java.util.Optional;
 import java.util.OptionalLong;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public class EtcdRequestException extends EtcdException {
 
 	private final int errorCode;

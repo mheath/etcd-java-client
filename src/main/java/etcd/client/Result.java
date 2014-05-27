@@ -19,9 +19,6 @@ package etcd.client;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public interface Result {
 
 	/**

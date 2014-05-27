@@ -16,9 +16,6 @@
  */
 package etcd.client;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public class EtcdException extends RuntimeException {
 
 	public EtcdException() {

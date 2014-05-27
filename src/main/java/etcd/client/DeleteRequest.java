@@ -16,9 +16,6 @@
  */
 package etcd.client;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public interface DeleteRequest extends Request<Result> {
 
 	DeleteRequest previousValue(String value);

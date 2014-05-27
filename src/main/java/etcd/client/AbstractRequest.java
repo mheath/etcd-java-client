@@ -23,9 +23,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public abstract class AbstractRequest<T> implements Request<T> {
 
 	private final HttpClient client;

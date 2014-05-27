@@ -40,8 +40,6 @@ import java.util.function.Consumer;
 
 /**
  * Light HTTP client wrapper around Netty.
- *
- * @author Mike Heath <elcapo@gmail.com>
  */
 // TODO Remove bad hosts from selection pool after error, return after timeout
 class HttpClient {

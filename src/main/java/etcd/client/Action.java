@@ -18,8 +18,6 @@ package etcd.client;
 
 /**
  * The actions performed by etcd.
- *
- * @author Mike Heath <elcapo@gmail.com>
  */
 public enum Action {
 	COMPAREANDDELETE,

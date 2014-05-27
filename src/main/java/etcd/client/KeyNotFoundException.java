@@ -16,9 +16,6 @@
  */
 package etcd.client;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public class KeyNotFoundException extends EtcdRequestException {
 	public KeyNotFoundException(String message, int errorCode, Long index, String cause) {
 		super(message, errorCode, index, cause);

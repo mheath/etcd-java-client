@@ -21,9 +21,6 @@ import io.netty.channel.EventLoopGroup;
 import java.net.URI;
 import java.util.concurrent.Executor;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public class EtcdClientBuilder {
 
 	final ServerList servers = new ServerList();

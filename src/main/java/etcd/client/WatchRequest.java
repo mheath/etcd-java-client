@@ -18,9 +18,6 @@ package etcd.client;
 
 import java.util.stream.Stream;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public interface WatchRequest extends GetRequest, AutoCloseable {
 
 	int getCurrentIndex();
