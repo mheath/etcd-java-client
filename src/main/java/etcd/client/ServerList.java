@@ -56,7 +56,7 @@ class ServerList {
 		private final URI address;
 		private volatile long failTime;
 
-		private Server(URI address) {
+		Server(URI address) {
 			this.address = address;
 		}
 

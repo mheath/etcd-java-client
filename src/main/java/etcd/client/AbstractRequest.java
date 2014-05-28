@@ -17,6 +17,7 @@
 package etcd.client;
 
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 
@@ -36,7 +37,7 @@ public abstract class AbstractRequest<T> implements Request<T> {
 		final HttpClient.Response[] clientResponse = new HttpClient.Response[1];
 		final Object lock = new Object();
 		synchronized (lock) {
-			final HttpRequest httpRequest = buildRequest();
+			final FullHttpRequest httpRequest = buildRequest();
 			client.send(httpRequest, response -> {
 				clientResponse[0] = response;
 				synchronized (lock) {
@@ -77,7 +78,7 @@ public abstract class AbstractRequest<T> implements Request<T> {
 		});
 	}
 
-	protected abstract HttpRequest buildRequest();
+	protected abstract FullHttpRequest buildRequest();
 
 	protected abstract T createResult(FullHttpResponse response);
 

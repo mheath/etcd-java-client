@@ -24,6 +24,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
@@ -108,7 +109,7 @@ public class DefaultEtcdClient implements EtcdClient {
 		}
 
 		@Override
-		protected HttpRequest buildRequest() {
+		protected FullHttpRequest buildRequest() {
 			final StringBuilder uriBuilder = new StringBuilder();
 			uriBuilder.append("/v2/keys").append(key);
 			final StringBuilder queryBuilder = new StringBuilder();
@@ -133,7 +134,7 @@ public class DefaultEtcdClient implements EtcdClient {
 				queryBuilder.append("waitIndex=").append(waitIndex);
 			}
 			uriBuilder.append(queryBuilder);
-			return new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uriBuilder.toString());
+			return new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uriBuilder.toString());
 		}
 
 		@Override
@@ -202,7 +203,7 @@ public class DefaultEtcdClient implements EtcdClient {
 		}
 
 		@Override
-		protected HttpRequest buildRequest() {
+		protected FullHttpRequest buildRequest() {
 			final StringBuilder uriBuilder = new StringBuilder();
 			uriBuilder.append("/v2/keys").append(key);
 			final StringBuilder queryBuilder = new StringBuilder();
@@ -278,7 +279,7 @@ public class DefaultEtcdClient implements EtcdClient {
 		}
 
 		@Override
-		protected HttpRequest buildRequest() {
+		protected FullHttpRequest buildRequest() {
 			final HttpMethod method = inOrder ? HttpMethod.POST : HttpMethod.PUT;
 			final DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, "/v2/keys" + key);
 			final StringBuilder body = new StringBuilder();

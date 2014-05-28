@@ -23,7 +23,6 @@ import org.testng.annotations.BeforeSuite;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;

@@ -18,8 +18,8 @@ package etcd.client;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpVersion;
 import org.testng.annotations.Test;
@@ -42,7 +42,7 @@ public class HttpClientTest {
 		serverList.addServer(URI.create("http://localhost:2001"), true);
 		final HttpClient httpClient = new HttpClient(new NioEventLoopGroup(), Runnable::run, serverList, false);
 		final CountDownLatch latch = new CountDownLatch(1);
-		httpClient.send(new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/v2/keys/"), (response) -> {
+		httpClient.send(new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "/v2/keys/"), (response) -> {
 			final DefaultFullHttpResponse httpResponse = response.getHttpResponse();
 			final ByteBuf contentBuffer = httpResponse.content();
 			System.out.println(contentBuffer.toString(Charset.defaultCharset()));
