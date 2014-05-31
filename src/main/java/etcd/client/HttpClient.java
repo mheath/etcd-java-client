@@ -144,7 +144,7 @@ class HttpClient {
 						final InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress();
 						serverUri = URI.create("http://" + address.getHostString() + ":" + address.getPort());
 					}
-					request.setUri(locationUri.getPath());
+					request.setUri(locationUri.getPath() + (locationUri.getQuery() == null ? "" : locationUri.getQuery()));
 					final Iterator<ServerList.Server> serverIterator = Collections.singleton(new ServerList.Server(serverUri)).iterator();
 					request.retain();
 					send(serverIterator, request, completionCallbackHandler);
