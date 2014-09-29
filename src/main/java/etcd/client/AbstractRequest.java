@@ -16,15 +16,13 @@
  */
 package etcd.client;
 
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpRequest;
+import io.netty.util.concurrent.DefaultPromise;
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.concurrent.ExecutionException;
 
-public abstract class AbstractRequest<T> implements Request<T> {
+abstract class AbstractRequest implements Request {
 
 	private final HttpClient client;
 
@@ -33,37 +31,26 @@ public abstract class AbstractRequest<T> implements Request<T> {
 	}
 
 	@Override
-	public T send() {
-		final HttpClient.Response[] clientResponse = new HttpClient.Response[1];
-		final Object lock = new Object();
-		synchronized (lock) {
-			final FullHttpRequest httpRequest = buildRequest();
-			client.send(httpRequest, response -> {
-				clientResponse[0] = response;
-				synchronized (lock) {
-					lock.notify();
-				}
-			});
-			try {
-				lock.wait();
-			} catch (InterruptedException e) {
-				throw new EtcdException(e);
-			}
-		}
-		final DefaultFullHttpResponse response = clientResponse[0].getHttpResponse();
+	public Result send() {
 		try {
-			return createResult(response);
-		} finally {
-			response.release();
+			return sendAsync().get();
+		} catch (InterruptedException e) {
+			throw new EtcdException(e);
+		} catch (ExecutionException e) {
+			if (e.getCause() instanceof EtcdException) {
+				throw (EtcdException)e.getCause();
+			}
+			throw new EtcdException(e.getCause());
 		}
 	}
 
-	@Override
-	public void send(Consumer<Supplier<T>> consumer) {
+	public EtcdFuture sendAsync(EtcdListener... listeners) {
+		final EtcdPromise promise = new EtcdPromise();
+		promise.addListeners(listeners);
 		client.send(buildRequest(), response -> {
 			try {
-				final T result = createResult(response.getHttpResponse());
-				consumer.accept(() -> result);
+				final Result result = createResult(response.getHttpResponse());
+				promise.setSuccess(result);
 			} catch (Exception e) {
 				final EtcdException ee;
 				if (e instanceof EtcdException) {
@@ -71,15 +58,22 @@ public abstract class AbstractRequest<T> implements Request<T> {
 				} else {
 					ee = new EtcdException(e);
 				}
-				consumer.accept(() -> { throw ee; });
+				promise.setFailure(ee);
 			} finally {
 				response.getHttpResponse().release();
 			}
 		});
+		return promise;
 	}
 
 	protected abstract FullHttpRequest buildRequest();
 
-	protected abstract T createResult(FullHttpResponse response);
+	protected abstract Result createResult(FullHttpResponse response);
+
+	private class EtcdPromise extends DefaultPromise<Result> implements EtcdFuture {
+		private EtcdPromise() {
+			super(client.getEventLoopGroup().next());
+		}
+	}
 
 }

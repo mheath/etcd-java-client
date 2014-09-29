@@ -43,7 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public class DefaultEtcdClient implements EtcdClient {
+class DefaultEtcdClient implements EtcdClient {
 
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -61,22 +61,17 @@ public class DefaultEtcdClient implements EtcdClient {
 	}
 
 	@Override
-	public DeleteRequest delete(String key) {
+	public DeleteRequest prepareDelete(String key) {
 		return new DeleteRequestImpl(client, key);
 	}
 
 	@Override
-	public GetRequest get(String key) {
+	public GetRequest prepareGet(String key) {
 		return new GetRequestImpl(client, key);
 	}
 
 	@Override
-	public Request<Lock> lock(String key, int timeToLive) {
-		throw new UnsupportedOperationException("Using the lock module isn't supported yet.");
-	}
-
-	@Override
-	public SetRequest set(String key) {
+	public SetRequest prepareSet(String key) {
 		return new SetRequestImpl(client, key);
 	}
 
@@ -92,7 +87,7 @@ public class DefaultEtcdClient implements EtcdClient {
 		}
 	}
 
-	private class GetRequestImpl extends AbstractRequest<Result> implements GetRequest {
+	private class GetRequestImpl extends AbstractRequest implements GetRequest {
 
 		private final String key;
 
@@ -189,7 +184,7 @@ public class DefaultEtcdClient implements EtcdClient {
 		}
 	}
 
-	private class DeleteRequestImpl extends AbstractRequest<Result> implements DeleteRequest {
+	private class DeleteRequestImpl extends AbstractRequest implements DeleteRequest {
 
 		private final String key;
 		private String previousValue;
@@ -260,7 +255,7 @@ public class DefaultEtcdClient implements EtcdClient {
 		}
 	}
 
-	private class SetRequestImpl extends AbstractRequest<Result> implements SetRequest {
+	private class SetRequestImpl extends AbstractRequest implements SetRequest {
 
 		private final String key;
 

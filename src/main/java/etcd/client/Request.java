@@ -16,13 +16,10 @@
  */
 package etcd.client;
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 /**
  * Represents a request to the etcd cluster.
  */
-public interface Request<T> {
+public interface Request {
 
 	// TODO Add a send method that has a timeout.
 
@@ -32,15 +29,15 @@ public interface Request<T> {
 	 *
 	 * @return the result of the request.
 	 */
-	T send();
+	Result send();
 
 	/**
 	 * Sends the request to the etcd cluster and invokes the {@code consumer} callback when the response is received.
 	 * This method does not block. This method may be invoked multiple times and will send multiple requests to the
 	 * etcd cluster.
 	 *
-	 * @param consumer the callback that is invoked when a response arrives from the etcd cluster.
+	 * @param listeners optional list of listeners that will be invoked when the request completes.
 	 */
-	void send(Consumer<Supplier<T>> consumer);
+	EtcdFuture sendAsync(EtcdListener... listeners);
 
 }

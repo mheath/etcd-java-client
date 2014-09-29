@@ -16,7 +16,7 @@
  */
 package etcd.client;
 
-public interface GetRequest extends Request<Result> {
+public interface GetRequest extends Request {
 
 	/**
 	 * By invoking this method before executing this command, etcd will make sure you are talking to the current

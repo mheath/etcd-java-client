@@ -16,7 +16,7 @@
  */
 package etcd.client;
 
-public interface DeleteRequest extends Request<Result> {
+public interface DeleteRequest extends Request {
 
 	DeleteRequest previousValue(String value);
 

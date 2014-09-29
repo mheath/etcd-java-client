@@ -45,7 +45,7 @@ public class ClientTest extends AbstractClientTest {
 	@Test
 	public void blockingGet() {
 		final String key = "/";
-		final GetRequest getCommand = client.get(key);
+		final GetRequest getCommand = client.prepareGet(key);
 		assertNotNull(getCommand);
 		final Result result = getCommand.send();
 		assertNotNull(result);
@@ -62,7 +62,7 @@ public class ClientTest extends AbstractClientTest {
 		final String key = "/setAndGet";
 		final String value = "some value goes here";
 
-		final Result setResult = client.set(key).value(value).send();
+		final Result setResult = client.prepareSet(key).value(value).send();
 		assertNotNull(setResult);
 		assertEquals(setResult.getAction(), Action.SET);
 		final Node node = setResult.getNode();
@@ -70,14 +70,14 @@ public class ClientTest extends AbstractClientTest {
 		assertEquals(node.getKey(), key);
 		assertEquals(node.getValue().get(), value);
 
-		final Result getResult = client.get(key).send();
+		final Result getResult = client.prepareGet(key).send();
 		assertNotNull(getResult);
 		assertEquals(getResult.getNode().getValue().get(), value);
 	}
 
 	@Test
 	public void metaData() {
-		final Result result = client.get("/").send();
+		final Result result = client.prepareGet("/").send();
 		final EtcdMeta meta = result.getResponseMeta();
 		assertNotNull(meta);
 		assertTrue(meta.getEtcdIndex() > 0);
@@ -92,8 +92,8 @@ public class ClientTest extends AbstractClientTest {
 	@Test
 	public void blockingDelete() {
 		final String key = "/blockingDelete";
-		client.set(key).value("some value").send();
-		final Result deleteResult = client.delete(key).send();
+		client.prepareSet(key).value("some value").send();
+		final Result deleteResult = client.prepareDelete(key).send();
 		assertEquals(deleteResult.getAction(), Action.DELETE);
 	}
 
@@ -103,7 +103,7 @@ public class ClientTest extends AbstractClientTest {
 		final String value1 = "First value";
 		final String value2 = "Second value";
 
-		final SetRequest set = client.set(key).value(value1);
+		final SetRequest set = client.prepareSet(key).value(value1);
 		set.send();
 
 		final Result result = set.value(value2).send();
@@ -115,7 +115,7 @@ public class ClientTest extends AbstractClientTest {
 	@Test
 	public void setWithTtl() {
 		final Duration timeToLive = Duration.ofSeconds(20);
-		final Result result = client.set("/setwithttl").value("some value").timeToLive(timeToLive).send();
+		final Result result = client.prepareSet("/setwithttl").value("some value").timeToLive(timeToLive).send();
 		final Node node = result.getNode();
 		assertTrue(node.getTimetoLive().isPresent());
 		node.getTimetoLive().ifPresent(ttl -> assertEquals(ttl, timeToLive));
@@ -124,24 +124,24 @@ public class ClientTest extends AbstractClientTest {
 
 	@Test
 	public void createDirectory() {
-		final Result result = client.set("newDirectory").directory().send();
+		final Result result = client.prepareSet("newDirectory").directory().send();
 		assertTrue(result.getNode().isDirectory());
 	}
 
 	@Test
 	public void recursiveGet() {
 		final String value = "value";
-		client.set("/l1/l2/l3/l4/l5").value(value).send();
+		client.prepareSet("/l1/l2/l3/l4/l5").value(value).send();
 
 		// Ensure initial get only fetches 1 level deep
-		final Result l1Result = client.get("/l1").send();
+		final Result l1Result = client.prepareGet("/l1").send();
 		final Node node = l1Result.getNode();
 		assertTrue(node.isDirectory());
 		final List<? extends Node> childNodes = node.getNodes();
 		assertEquals(childNodes.size(), 1);
 		assertEquals(childNodes.get(0).getNodes().size(), 0);
 
-		final Result result = client.get("l1").recursive().send();
+		final Result result = client.prepareGet("l1").recursive().send();
 		final Node l1 = result.getNode();
 		assertTrue(l1.isDirectory());
 		assertEquals(l1.getKey(), "/l1");
@@ -170,14 +170,15 @@ public class ClientTest extends AbstractClientTest {
 
 	@Test
 	public void setWithNoValue() {
-		final Result result = client.set("/emptyValue").send();
-		assertFalse(result.getNode().getValue().isPresent());
+		final Result result = client.prepareSet("/emptyValue").send();
+		assertTrue(result.getNode().getValue().isPresent());
+		assertTrue(result.getNode().getValue().get().isEmpty());
 		assertFalse(result.getNode().isDirectory());
 	}
 
 	@Test
 	public void inOrderKey() {
-		final Result result = client.set("/inorder").inOrder().send();
+		final Result result = client.prepareSet("/inorder").inOrder().send();
 		assertEquals(result.getAction(), Action.CREATE);
 		assertEquals(result.getNode().getKey(), "/inorder/" + result.getNode().getCreatedIndex());
 	}
@@ -186,15 +187,15 @@ public class ClientTest extends AbstractClientTest {
 	public void mustExist() {
 		final String key = "/mustExist";
 		try {
-			client.set(key).mustExist().send();
+			client.prepareSet(key).mustExist().send();
 			fail("Should have thrown an exception.");
 		} catch (EtcdRequestException e) {
 			assertEquals(e.getErrorCode(), 204);
 		}
 
-		client.set(key).value("dummy").send();
+		client.prepareSet(key).value("dummy").send();
 
-		final Result result = client.set(key).value("new value").mustExist().send();
+		final Result result = client.prepareSet(key).value("new value").mustExist().send();
 		assertEquals(result.getAction(), Action.UPDATE);
 		assertEquals(result.getNode().getKey(), key);
 	}
@@ -203,12 +204,12 @@ public class ClientTest extends AbstractClientTest {
 	public void mustNotExist() {
 		final String key = "/mustNotExist";
 
-		final Result result = client.set(key).value("some value").mustNotExist().send();
+		final Result result = client.prepareSet(key).value("some value").mustNotExist().send();
 		assertEquals(result.getAction(), Action.CREATE);
 		assertEquals(result.getNode().getKey(), key);
 
 		try {
-			client.set(key).mustNotExist().send();
+			client.prepareSet(key).mustNotExist().send();
 			fail("Should have thrown an exception.");
 		} catch (EtcdRequestException e) {
 			assertEquals(e.getErrorCode(), 105);
@@ -219,9 +220,9 @@ public class ClientTest extends AbstractClientTest {
 	public void previousValue() {
 		final String key = "/previousValue";
 		final String value = "Some value";
-		client.set(key).value(value).send();
+		client.prepareSet(key).value(value).send();
 		try {
-			client.set(key).value("Dummy value").previousValue("bad value").send();
+			client.prepareSet(key).value("Dummy value").previousValue("bad value").send();
 			fail("Should have thrown an exception.");
 		} catch (EtcdRequestException e) {
 			assertEquals(e.getErrorCode(), 101);
@@ -231,40 +232,40 @@ public class ClientTest extends AbstractClientTest {
 	@Test
 	public void previousIndex() {
 		final String key = "/previousIndex";
-		final Result createResult = client.set(key).value("Some value").send();
+		final Result createResult = client.prepareSet(key).value("Some value").send();
 
 		try {
-			client.set(key).value("dummy value").previousIndex(8587598743848584l).send();
+			client.prepareSet(key).value("dummy value").previousIndex(8587598743848584l).send();
 			fail("Should have thrown an exception");
 		} catch (EtcdRequestException e) {
 			assertEquals(e.getErrorCode(), 101);
 		}
 
-		client.set(key).value("new value").previousIndex(createResult.getNode().getCreatedIndex());
+		client.prepareSet(key).value("new value").previousIndex(createResult.getNode().getCreatedIndex());
 	}
 
 	@Test(expectedExceptions = EtcdRequestException.class)
 	public void delete() {
 		final String key = "/test";
-		client.set(key).value("some value").send();
+		client.prepareSet(key).value("some value").send();
 
-		final Result result = client.get(key).send();
+		final Result result = client.prepareGet(key).send();
 		assertEquals(result.getAction(), Action.GET);
 
-		final Result deleteResult = client.delete(key).send();
+		final Result deleteResult = client.prepareDelete(key).send();
 		assertEquals(deleteResult.getAction(), Action.DELETE);
 
-		client.get(key).send();
+		client.prepareGet(key).send();
 	}
 
 	@Test
 	public void deletePreviousValue() {
 		final String key = "/deletePreviousValue";
 		final String originalValue = "some value goes here";
-		client.set(key).value(originalValue).send();
+		client.prepareSet(key).value(originalValue).send();
 
 		try {
-			client.delete(key).previousValue("bad value").send();
+			client.prepareDelete(key).previousValue("bad value").send();
 			fail("Should have thrown an exception");
 		} catch (EtcdRequestException e) {
 			assertEquals(e.getErrorCode(), 101);
@@ -274,42 +275,42 @@ public class ClientTest extends AbstractClientTest {
 	@Test
 	public void deletePreviousIndex() {
 		final String key = "/deletePreviousIndex";
-		final Result result = client.set(key).value("some value").send();
+		final Result result = client.prepareSet(key).value("some value").send();
 
 		try {
-			client.delete(key).previousIndex(84584393923932435l).send();
+			client.prepareDelete(key).previousIndex(84584393923932435l).send();
 		} catch (EtcdRequestException e) {
 			assertEquals(e.getErrorCode(), 101);
 		}
 
-		final Result deleteResult = client.delete(key).previousIndex(result.getNode().getCreatedIndex()).send();
+		final Result deleteResult = client.prepareDelete(key).previousIndex(result.getNode().getCreatedIndex()).send();
 		assertEquals(deleteResult.getAction(), Action.COMPAREANDDELETE);
 	}
 
 	@Test
 	public void deleteDirectory() {
 		final String key = "/deleteDirectory";
-		client.set(key).directory().send();
+		client.prepareSet(key).directory().send();
 		try {
-			client.delete(key).send();
+			client.prepareDelete(key).send();
 			fail("Should have thrown exception");
 		} catch (EtcdRequestException e) {
 			assertEquals(e.getErrorCode(), 102);
 		}
-		final Result result = client.delete(key).directory().send();
+		final Result result = client.prepareDelete(key).directory().send();
 		assertEquals(result.getAction(), Action.DELETE);
 	}
 
 	@Test
 	public void deleteRecursive() {
 		final String key = "/deleteRecursive";
-		client.set(key + "/a/b/c/d/e/f").value("some value").send();
+		client.prepareSet(key + "/a/b/c/d/e/f").value("some value").send();
 		try {
-			client.delete(key).send();
+			client.prepareDelete(key).send();
 		} catch (EtcdRequestException e) {
 			assertEquals(e.getErrorCode(), 102);
 		}
-		final Result result = client.delete(key).recursive().send();
+		final Result result = client.prepareDelete(key).recursive().send();
 		assertEquals(result.getAction(), Action.DELETE);
 	}
 
@@ -317,8 +318,8 @@ public class ClientTest extends AbstractClientTest {
 	public void getConsistent() {
 		final String key = "/getConsistent";
 		final String value = "some value";
-		client.set(key).value(value).send();
-		final Result result = client.get(key).consistent().send();
+		client.prepareSet(key).value(value).send();
+		final Result result = client.prepareGet(key).consistent().send();
 		assertEquals(result.getAction(), Action.GET);
 		assertEquals(result.getNode().getValue().get(), value);
 	}
@@ -328,9 +329,9 @@ public class ClientTest extends AbstractClientTest {
 		final Throwable[] error = new Throwable[]{null};
 		final CountDownLatch latch = new CountDownLatch(1);
 
-		client.get("/").send(r -> {
+		client.prepareGet("/").sendAsync(future -> {
 			try {
-				final Result result = r.get();
+				final Result result = future.get();
 				assertNotNull(result);
 				final Node node = result.getNode();
 				assertNotNull(node);
@@ -355,10 +356,10 @@ public class ClientTest extends AbstractClientTest {
 		final Throwable[] error = new Throwable[]{null};
 		final CountDownLatch latch = new CountDownLatch(1);
 
-		client.set(key).value(value).send(set ->
-						client.get(key).send(r -> {
+		client.prepareSet(key).value(value).sendAsync(setFuture ->
+						client.prepareGet(key).sendAsync(getFuture -> {
 							try {
-								final Result result = r.get();
+								final Result result = getFuture.get();
 								assertNotNull(result);
 								final Node node = result.getNode();
 								assertNotNull(node);

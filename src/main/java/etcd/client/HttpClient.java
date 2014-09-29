@@ -21,6 +21,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -59,6 +60,7 @@ class HttpClient {
 	private static AttributeKey<Consumer<Response>> ATTRIBUTE_KEY = AttributeKey.valueOf(HttpClient.class.getName() + "-attribute");
 	private static AttributeKey<FullHttpRequest> REQUEST_KEY = AttributeKey.valueOf(HttpClient.class.getName() + "-request");
 
+	private final EventLoopGroup eventLoopGroup;
 	private final Bootstrap bootstrap;
 	private final Executor executor;
 
@@ -69,12 +71,14 @@ class HttpClient {
 //	private final Object lock = new Object();
 
 	public HttpClient(EventLoopGroup eventLoopGroup, Executor executor, ServerList servers, boolean autoReconnect) {
+		this.eventLoopGroup = eventLoopGroup;
 		this.executor = executor;
 		this.servers = servers;
 		this.autoReconnect = autoReconnect;
 		bootstrap = new Bootstrap()
 				.group(eventLoopGroup)
 				.channel(NioSocketChannel.class)
+				.option(ChannelOption.SO_REUSEADDR, true)
 				.handler(new ChannelInitializer<SocketChannel>() {
 					@Override
 					protected void initChannel(SocketChannel channel) throws Exception {
@@ -119,6 +123,10 @@ class HttpClient {
 
 	private void invokeCompletionHandler(Consumer<Response> completionHandler, Response response) {
 		executor.execute(() -> completionHandler.accept(response));
+	}
+
+	public EventLoopGroup getEventLoopGroup() {
+		return eventLoopGroup;
 	}
 
 	class HttpClientHandler extends ChannelInboundHandlerAdapter {

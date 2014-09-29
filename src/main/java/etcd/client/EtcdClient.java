@@ -16,19 +16,15 @@
  */
 package etcd.client;
 
-// TODO Add method for retrieving a lock
-// TODO API for leader module -- can you 'watch' a leader? can you 'watch' a lock?
 // TODO Statistics methods
 // TODO Add class with set of constants for error codes
 public interface EtcdClient extends AutoCloseable {
 
-	DeleteRequest delete(String key);
+	DeleteRequest prepareDelete(String key);
 
-	GetRequest get(String key);
+	GetRequest prepareGet(String key);
 
-	Request<Lock> lock(String key, int timeToLive);
-
-	SetRequest set(String key);
+	SetRequest prepareSet(String key);
 
 	WatchRequest watch(String Key);
 

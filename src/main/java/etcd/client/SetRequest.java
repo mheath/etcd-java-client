@@ -18,7 +18,7 @@ package etcd.client;
 
 import java.time.Duration;
 
-public interface SetRequest extends Request<Result> {
+public interface SetRequest extends Request {
 
 	SetRequest value(String value);
 
