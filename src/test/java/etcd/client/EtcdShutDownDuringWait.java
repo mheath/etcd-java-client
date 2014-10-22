@@ -45,7 +45,6 @@ public class EtcdShutDownDuringWait extends AbstractClientTest {
 
 	@Test
 	public void shutdownEtcdDuringWait() throws Exception {
-		System.out.println("A");
 		final CountDownLatch latch = new CountDownLatch(1);
 
 		final String key = "/test";
