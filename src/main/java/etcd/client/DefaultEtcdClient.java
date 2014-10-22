@@ -403,7 +403,7 @@ class DefaultEtcdClient implements EtcdClient {
 
 	private Result marshalResult(FullHttpResponse response) {
 		try {
-			EtcdMeta meta = new EtcdMeta(
+			final EtcdMeta meta = new EtcdMeta(
 					convertLong(response.headers().get("X-Etcd-Index")),
 					convertLong(response.headers().get("X-Raft-Index")),
 					convertLong(response.headers().get("X-Raft-Term"))
