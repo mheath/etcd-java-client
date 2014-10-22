@@ -16,6 +16,7 @@
  */
 package etcd.client;
 
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -40,6 +41,11 @@ public class ClientTest extends AbstractClientTest {
 	@BeforeClass
 	public void init() {
 		client = EtcdClientBuilder.create().addHost("localhost", PORT, true).build();
+	}
+
+	@AfterClass
+	public void cleanup() {
+		client.close();
 	}
 
 	@Test

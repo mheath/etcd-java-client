@@ -17,8 +17,8 @@
 package etcd.client;
 
 import org.testng.Assert;
-import org.testng.annotations.AfterSuite;
-import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -38,7 +38,7 @@ public abstract class AbstractClientTest {
 	public static final int PORT = 2001;
 	private Process etcdProcess;
 
-	@BeforeSuite
+	@BeforeClass
 	public void startEtcdServer() throws Exception {
 		System.out.println("Starting ETCD");
 		String etcd = System.getProperty("etcd");
@@ -62,35 +62,38 @@ public abstract class AbstractClientTest {
 		}
 	}
 
-	@AfterSuite
+	@AfterClass
 	public void killEtcdServer() throws Exception {
 		if (etcdProcess != null) {
 			System.out.println("Killing ETCD");
 			etcdProcess.destroy();
 		}
 		System.out.println("Deleting etcd droppings");
-		Files.walkFileTree(Paths.get("test0"), new SimpleFileVisitor<Path>() {
-			@Override
-			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-				Files.delete(file);
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-				Files.delete(file);
-				return FileVisitResult.CONTINUE;
-			}
-
-			@Override
-			public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-				if (exc != null) {
-					throw exc;
+		final Path path = Paths.get("test0");
+		if (Files.exists(path)) {
+			Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+					Files.delete(file);
+					return FileVisitResult.CONTINUE;
 				}
-				Files.delete(dir);
-				return FileVisitResult.CONTINUE;
-			}
-		});
+
+				@Override
+				public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+					Files.delete(file);
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+					if (exc != null) {
+						throw exc;
+					}
+					Files.delete(dir);
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		}
 	}
 
 	private static boolean isPortAvailable(int port) {

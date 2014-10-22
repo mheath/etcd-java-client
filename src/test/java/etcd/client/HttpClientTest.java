@@ -34,7 +34,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * @author Mike Heath <elcapo@gmail.com>
  */
-public class HttpClientTest {
+public class HttpClientTest extends AbstractClientTest {
 
 	@Test
 	public void httpClient() throws Exception {
