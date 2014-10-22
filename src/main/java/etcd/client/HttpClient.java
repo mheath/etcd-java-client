@@ -17,6 +17,7 @@
 package etcd.client;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -105,11 +106,12 @@ class HttpClient {
 		final ChannelFuture connectFuture = bootstrap.connect(address.getHost(), address.getPort());
 		final FullHttpRequest requestCopy = request.copy();
 		requestCopy.retain();
-		connectFuture.channel().attr(REQUEST_KEY).set(requestCopy);
-		connectFuture.channel().attr(ATTRIBUTE_KEY).set(completionHandler);
+		final Channel channel = connectFuture.channel();
+		channel.attr(REQUEST_KEY).set(requestCopy);
+		channel.attr(ATTRIBUTE_KEY).set(completionHandler);
 		connectFuture.addListener((future) -> {
 			if (future.isSuccess()) {
-				connectFuture.channel().writeAndFlush(request);
+				channel.writeAndFlush(request);
 			} else {
 				server.connectionFailed();
 				if (autoReconnect && serverIterator.hasNext()) {
