@@ -63,7 +63,7 @@ public class EtcdShutDownDuringWait extends AbstractClientTest {
 			}
 		});
 		killEtcdServer();
-		assertTrue(latch.await(2, TimeUnit.HOURS), "Did not throw exception when server shut down unexpectedly.");
+		assertTrue(latch.await(2, TimeUnit.SECONDS), "Did not throw exception when server shut down unexpectedly.");
 	}
 
 }
