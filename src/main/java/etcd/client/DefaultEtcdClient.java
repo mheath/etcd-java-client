@@ -19,6 +19,7 @@ package etcd.client;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -409,40 +410,45 @@ class DefaultEtcdClient implements EtcdClient {
 					convertLong(response.headers().get("X-Raft-Term"))
 			);
 
-			final ByteBufInputStream inputStream = new ByteBufInputStream(response.content());
-			final JsonResult json = MAPPER.readValue(inputStream, JsonResult.class);
+			final ByteBuf content = response.content();
+			if (content.readableBytes() > 0) {
+				final ByteBufInputStream inputStream = new ByteBufInputStream(content);
+				final JsonResult json = MAPPER.readValue(inputStream, JsonResult.class);
 
-			return new Result() {
-				@Override
-				public EtcdMeta getResponseMeta() {
-					return meta;
-				}
+				return new Result() {
+					@Override
+					public EtcdMeta getResponseMeta() {
+						return meta;
+					}
 
-				@Override
-				public Action getAction() {
-					return json.action;
-				}
+					@Override
+					public Action getAction() {
+						return json.action;
+					}
 
-				@Override
-				public Node getNode() {
-					return json.node;
-				}
+					@Override
+					public Node getNode() {
+						return json.node;
+					}
 
-				@Override
-				public Optional<Node> getPreviousNode() {
-					return Optional.ofNullable(json.previousNode);
-				}
+					@Override
+					public Optional<Node> getPreviousNode() {
+						return Optional.ofNullable(json.previousNode);
+					}
 
-				@Override
-				public String toString() {
-					return "Result {" +
-							"meta = " + getResponseMeta() +
-							", action = " + getAction() +
-							", node = " + getNode() +
-							", prevNode = " + getPreviousNode().orElse(null) +
-							"}";
-				}
-			};
+					@Override
+					public String toString() {
+						return "Result {" +
+								"meta = " + getResponseMeta() +
+								", action = " + getAction() +
+								", node = " + getNode() +
+								", prevNode = " + getPreviousNode().orElse(null) +
+								"}";
+					}
+				};
+			} else {
+				throw new EtcdException("Empty response from server.");
+			}
 		} catch (IOException e) {
 			throw new EtcdException(e);
 		}
@@ -593,4 +599,5 @@ class DefaultEtcdClient implements EtcdClient {
 			this.index = index;
 		}
 	}
+
 }
