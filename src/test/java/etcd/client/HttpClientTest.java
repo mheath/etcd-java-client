@@ -31,9 +31,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.testng.Assert.assertTrue;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public class HttpClientTest extends AbstractClientTest {
 
 	@Test

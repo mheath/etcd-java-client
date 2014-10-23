@@ -30,9 +30,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public abstract class AbstractClientTest {
 
 	public static final int PORT = 2001;

@@ -26,9 +26,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.testng.Assert.*;
 
-/**
- * @author Mike Heath <elcapo@gmail.com>
- */
 public class EtcdShutDownDuringWait extends AbstractClientTest {
 
 	private EtcdClient client;
