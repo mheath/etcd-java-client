@@ -179,7 +179,8 @@ class DefaultEtcdClient implements EtcdClient {
 			if (response.getStatus().code() == HttpResponseStatus.NOT_FOUND.code()) {
 				throw new KeyNotFoundException(message, errorBody.errorCode, errorBody.index, errorBody.cause);
 			}
-			throw new EtcdRequestException(message, errorBody.errorCode, errorBody.index, errorBody.cause);
+			final Long etcdIndex = Long.valueOf(response.headers().get("X-Etcd-Index"));
+			throw new EtcdRequestException(message, errorBody.errorCode, etcdIndex, errorBody.cause);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
