@@ -39,14 +39,19 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.AttributeKey;
+import io.netty.util.ReferenceCounted;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.ResolverStyle;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
@@ -164,6 +169,9 @@ class HttpClient {
 				}
 			} finally {
 				request.release();
+				if (msg instanceof ReferenceCounted) {
+					((ReferenceCounted)msg).release();
+				}
 			}
 			ctx.close();
 		}
