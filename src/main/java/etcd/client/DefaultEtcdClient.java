@@ -24,13 +24,10 @@ import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.DefaultHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 
@@ -39,7 +36,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.format.DateTimeParseException;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -475,7 +472,7 @@ class DefaultEtcdClient implements EtcdClient {
 		@JsonCreator
 		private JsonResult(
 				@JsonProperty("action") String action,
-				@JsonProperty("node")JsonNode node,
+				@JsonProperty("node") JsonNode node,
 				@JsonProperty("prevNode") JsonNode previousNode) {
 			this.action = Action.valueOf(action.toUpperCase());
 			this.node = node;
@@ -515,17 +512,7 @@ class DefaultEtcdClient implements EtcdClient {
 		}
 
 		private Instant parseDate(String expiration) {
-			try {
-				return Instant.parse(expiration);
-			} catch (DateTimeParseException e) {
-				try {
-					final int timeSep = expiration.lastIndexOf('-');
-					expiration = expiration.substring(0, timeSep) + 'Z' + expiration.substring(timeSep + 1);
-					return Instant.parse(expiration);
-				} catch (DateTimeParseException e1) {
-					throw e;
-				}
-			}
+			return DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(expiration, Instant::from);
 		}
 
 		@Override
