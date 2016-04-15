@@ -98,6 +98,7 @@ class HttpClient {
 	private void send(Iterator<ServerList.Server> serverIterator, FullHttpRequest request, Consumer<Response> completionHandler) {
 		final ServerList.Server server = serverIterator.next();
 		final URI address = server.getAddress();
+		request.headers().add(HttpHeaders.Names.HOST, address.getHost());
 		final ChannelFuture connectFuture = bootstrap.connect(address.getHost(), address.getPort());
 		final FullHttpRequest requestCopy = request.copy();
 		requestCopy.retain();
