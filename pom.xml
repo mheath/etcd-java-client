@@ -84,7 +84,7 @@
 	<scm>
 		<url>scm:git:https://github.com/mheath/etcd-java-client.git</url>
 		<connection>scm:git:https://github.com/mheath/etcd-java-client</connection>
-		<developerConnection>scm:git:https://github.com/mheath/etcd-java-client</developerConnection>
+		<developerConnection>scm:git:git@github.com:mheath/etcd-java-client.git</developerConnection>
 	</scm>
 
 	<developers>
