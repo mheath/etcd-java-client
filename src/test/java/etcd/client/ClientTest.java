@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -57,7 +58,7 @@ public class ClientTest extends AbstractClientTest {
 		final Node node = result.getNode();
 		assertNotNull(node);
 		assertTrue(node.isDirectory());
-		assertEquals(node.getKey(), key);
+		assertNull(node.getKey());
 	}
 
 	@Test
@@ -85,7 +86,7 @@ public class ClientTest extends AbstractClientTest {
 		assertNotNull(meta);
 		assertTrue(meta.getEtcdIndex() > 0);
 		assertTrue(meta.getRaftIndex() > 0);
-		assertEquals(meta.getRaftTerm(), 0);
+		assertTrue(meta.getRaftTerm() > 0);
 
 		final String s = meta.toString();
 		assertTrue(s.contains(Long.toString(meta.getEtcdIndex())));
@@ -183,7 +184,7 @@ public class ClientTest extends AbstractClientTest {
 	public void inOrderKey() {
 		final Result result = client.prepareSet("/inorder").inOrder().send();
 		assertEquals(result.getAction(), Action.CREATE);
-		assertEquals(result.getNode().getKey(), "/inorder/" + result.getNode().getCreatedIndex());
+		assertEquals(result.getNode().getKey(), "/inorder/" + String.format("%020d", result.getNode().getCreatedIndex()));
 	}
 
 	@Test
@@ -193,7 +194,7 @@ public class ClientTest extends AbstractClientTest {
 			client.prepareSet(key).mustExist().send();
 			fail("Should have thrown an exception.");
 		} catch (EtcdRequestException e) {
-			assertEquals(e.getErrorCode(), 204);
+			assertEquals(e.getErrorCode(), 100);
 		}
 
 		client.prepareSet(key).value("dummy").send();
